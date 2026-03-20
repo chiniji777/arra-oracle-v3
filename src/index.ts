@@ -19,6 +19,7 @@ import { createVectorStore } from './vector/factory.ts';
 import type { VectorStoreAdapter } from './vector/types.ts';
 import path from 'path';
 import fs from 'fs';
+import { loadToolGroupConfig, getDisabledTools, type ToolGroupConfig } from './config/tool-groups.ts';
 
 // Tool handlers (all extracted to src/tools/)
 import type { ToolContext } from './tools/types.ts';
@@ -88,13 +89,21 @@ class OracleMCPServer {
   private vectorStatus: 'unknown' | 'connected' | 'unavailable' = 'unknown';
   private readOnly: boolean;
   private version: string;
+  private disabledTools: Set<string>;
 
-  constructor(options: { readOnly?: boolean } = {}) {
+  constructor(options: { readOnly?: boolean; toolGroups?: ToolGroupConfig } = {}) {
     this.readOnly = options.readOnly ?? false;
     if (this.readOnly) {
       console.error('[Oracle] Running in READ-ONLY mode');
     }
     this.repoRoot = process.env.ORACLE_REPO_ROOT || process.cwd();
+
+    const groupConfig = options.toolGroups ?? loadToolGroupConfig(this.repoRoot);
+    this.disabledTools = getDisabledTools(groupConfig);
+    const disabledGroups = Object.entries(groupConfig).filter(([, v]) => !v).map(([k]) => k);
+    if (disabledGroups.length > 0) {
+      console.error(`[ToolGroups] Disabled: ${disabledGroups.join(', ')}`);
+    }
 
     const homeDir = process.env.HOME || process.env.USERPROFILE || '/tmp';
 
@@ -197,9 +206,10 @@ class OracleMCPServer {
         scheduleListToolDef,
       ];
 
-      const tools = this.readOnly
-        ? allTools.filter(t => !WRITE_TOOLS.includes(t.name))
-        : allTools;
+      let tools = allTools.filter(t => !this.disabledTools.has(t.name));
+      if (this.readOnly) {
+        tools = tools.filter(t => !WRITE_TOOLS.includes(t.name));
+      }
 
       return { tools };
     });
@@ -208,6 +218,16 @@ class OracleMCPServer {
     // Handle tool calls — route to extracted handlers
     // ================================================================
     this.server.setRequestHandler(CallToolRequestSchema, async (request): Promise<any> => {
+      if (this.disabledTools.has(request.params.name)) {
+        return {
+          content: [{
+            type: 'text',
+            text: `Error: Tool "${request.params.name}" is disabled by tool group config. Check ~/.oracle/config.json or arra.config.json.`
+          }],
+          isError: true
+        };
+      }
+
       if (this.readOnly && WRITE_TOOLS.includes(request.params.name)) {
         return {
           content: [{
