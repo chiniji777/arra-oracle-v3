@@ -115,108 +115,68 @@ export function syncVault(opts: { dryRun?: boolean; repoRoot: string }): SyncRes
   return { dryRun: false, added, modified, deleted, commitHash, project };
 }
 
-export interface PullResult {
-  files: number;
-  project: string;
-}
+export interface PullResult { files: number; project: string }
 
 export function pullVault(opts: { repoRoot: string }): PullResult {
   const { repoRoot } = opts;
-
   const repo = getSetting('vault_repo');
   if (!repo) throw new Error('Vault not initialized. Run vault:init first.');
 
   const vaultPath = resolveVaultPath(repo);
   const project = detectProject(repoRoot) ?? null;
-  if (!project) {
-    throw new Error('Cannot detect project from repoRoot. Pull requires project context.');
-  }
+  if (!project) throw new Error('Cannot detect project from repoRoot. Pull requires project context.');
 
-  try {
-    execSync('git pull', { cwd: vaultPath, stdio: 'pipe' });
-  } catch {
-    console.error('[Vault] git pull failed — continuing with local vault state');
-  }
+  try { execSync('git pull', { cwd: vaultPath, stdio: 'pipe' }); }
+  catch { console.error('[Vault] git pull failed — continuing with local vault state'); }
 
   let fileCount = 0;
-
   const vaultProjectPsi = path.join(vaultPath, project, 'ψ');
   if (fs.existsSync(vaultProjectPsi)) {
-    const vaultFiles = walkFiles(vaultProjectPsi, vaultProjectPsi);
-    for (const { relativePath, fullPath: vaultFullPath } of vaultFiles) {
+    for (const { relativePath, fullPath: vf } of walkFiles(vaultProjectPsi, vaultProjectPsi)) {
       if (path.basename(relativePath) === '.gitkeep') continue;
       const localDest = path.join(repoRoot, 'ψ', relativePath);
       fs.mkdirSync(path.dirname(localDest), { recursive: true });
-      fs.copyFileSync(vaultFullPath, localDest);
+      fs.copyFileSync(vf, localDest);
       fileCount++;
     }
   }
-
   for (const category of UNIVERSAL_CATEGORIES) {
     const vaultCategoryDir = path.join(vaultPath, category);
     if (!fs.existsSync(vaultCategoryDir)) continue;
-
-    const vaultFiles = walkFiles(vaultCategoryDir, path.join(vaultPath, category));
-    for (const { relativePath, fullPath: vaultFullPath } of vaultFiles) {
+    for (const { relativePath, fullPath: vf } of walkFiles(vaultCategoryDir, path.join(vaultPath, category))) {
       if (relativePath === '.gitkeep') continue;
       const localDest = path.join(repoRoot, category, relativePath);
       fs.mkdirSync(path.dirname(localDest), { recursive: true });
-      fs.copyFileSync(vaultFullPath, localDest);
+      fs.copyFileSync(vf, localDest);
       fileCount++;
     }
   }
-
   console.error(`[Vault] Pulled ${fileCount} files for ${project}`);
   return { files: fileCount, project };
 }
 
 export interface VaultStatusResult {
-  enabled: boolean;
-  repo: string | null;
-  lastSync: string | null;
-  vaultPath: string | null;
-  pending?: {
-    added: number;
-    modified: number;
-    deleted: number;
-    total: number;
-  };
+  enabled: boolean; repo: string | null; lastSync: string | null; vaultPath: string | null;
+  pending?: { added: number; modified: number; deleted: number; total: number };
 }
 
 export function vaultStatus(repoRoot: string): VaultStatusResult {
   const repo = getSetting('vault_repo');
   const enabled = getSetting('vault_enabled') === 'true';
   const lastSyncMs = getSetting('vault_last_sync');
-
-  if (!repo || !enabled) {
-    return { enabled: false, repo: null, lastSync: null, vaultPath: null };
-  }
+  if (!repo || !enabled) return { enabled: false, repo: null, lastSync: null, vaultPath: null };
 
   let vaultPath: string | null = null;
-  try {
-    vaultPath = resolveVaultPath(repo);
-  } catch {
-    return {
-      enabled: true, repo,
-      lastSync: lastSyncMs ? new Date(Number(lastSyncMs)).toISOString() : null,
-      vaultPath: null,
-    };
+  try { vaultPath = resolveVaultPath(repo); } catch {
+    return { enabled: true, repo, lastSync: lastSyncMs ? new Date(Number(lastSyncMs)).toISOString() : null, vaultPath: null };
   }
 
   let pending = { added: 0, modified: 0, deleted: 0, total: 0 };
   try {
-    const status = execSync('git status --porcelain', {
-      cwd: vaultPath, encoding: 'utf-8',
-    }).trim();
+    const status = execSync('git status --porcelain', { cwd: vaultPath, encoding: 'utf-8' }).trim();
     const counts = parseGitStatus(status);
     pending = { ...counts, total: counts.added + counts.modified + counts.deleted };
-  } catch {
-    // git status failed — vault dir may not be a git repo
-  }
+  } catch { /* git status failed */ }
 
-  return {
-    enabled: true, repo,
-    lastSync: lastSyncMs ? new Date(Number(lastSyncMs)).toISOString() : null,
-    vaultPath, pending,
-  };
+  return { enabled: true, repo, lastSync: lastSyncMs ? new Date(Number(lastSyncMs)).toISOString() : null, vaultPath, pending };
 }
