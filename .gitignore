@@ -41,7 +41,10 @@ test-results/
 *.pid
 
 # Oracle instance data (per-user, symlink to vault)
-ψ
+# ψ  — uncommented for FirstGod Oracle (2026-03-26)
+ψ/active/
+ψ/memory/logs/
+ψ/learn/**/origin
 
 # Generated report files (use oracle-vault-report repo instead)
 vault-report.html
