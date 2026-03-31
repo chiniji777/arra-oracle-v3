@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { getStats, reflect, stripProjectPrefix } from '../api/oracle';
-import type { Document, Stats } from '../api/oracle';
+import { getStats, reflect, stripProjectPrefix, getStuckAgents, approveStuckAgent, approveAllStuckAgents, getCoreAgents, sleepAgent, wakeAgent } from '../api/oracle';
+import type { Document, Stats, StuckAgent, CoreAgentStatus } from '../api/oracle';
 import styles from './Overview.module.css';
+
+const CORE_AGENTS_ORDER = ['firstgod', 'saraswati', 'iris', 'athena', 'hermes', 'nova'];
 
 export function Overview() {
   const [stats, setStats] = useState<Stats | null>(null);
@@ -11,9 +13,68 @@ export function Overview() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [stuckAgents, setStuckAgents] = useState<StuckAgent[]>([]);
+  const [approving, setApproving] = useState<string | null>(null);
+  const [lastNotifiedCount, setLastNotifiedCount] = useState(0);
+  const [coreAgents, setCoreAgents] = useState<CoreAgentStatus[]>([]);
+  const [togglingAgent, setTogglingAgent] = useState<string | null>(null);
+
+  const pollCoreAgents = useCallback(async () => {
+    try {
+      const data = await getCoreAgents();
+      setCoreAgents(data.agents || []);
+    } catch { /* backend might be down */ }
+  }, []);
+
+  const pollStuckAgents = useCallback(async () => {
+    try {
+      const data = await getStuckAgents();
+      setStuckAgents(data.stuckAgents || []);
+
+      // Browser notification + sound for new stuck agents
+      if (data.totalStuck > 0 && data.totalStuck !== lastNotifiedCount) {
+        setLastNotifiedCount(data.totalStuck);
+        // Play alert beep sound
+        try {
+          const ctx = new AudioContext();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.frequency.value = 800;
+          gain.gain.value = 0.3;
+          osc.start();
+          osc.stop(ctx.currentTime + 0.2);
+        } catch { /* audio may be blocked */ }
+
+        // Browser notification
+        if (Notification.permission === 'granted') {
+          const names = data.stuckAgents.map((a: StuckAgent) => a.agent).join(', ');
+          new Notification(`Agent Stuck: ${names}`, {
+            body: data.stuckAgents[0]?.label || 'Needs your action',
+            icon: '/favicon.svg',
+          });
+        } else if (Notification.permission === 'default') {
+          Notification.requestPermission();
+        }
+      } else if (data.totalStuck === 0) {
+        setLastNotifiedCount(0);
+      }
+    } catch {
+      // Backend might be down, ignore
+    }
+  }, [lastNotifiedCount]);
 
   useEffect(() => {
     loadData();
+    pollStuckAgents();
+    pollCoreAgents();
+    const stuckInterval = setInterval(pollStuckAgents, 10000);
+    const ctxInterval = setInterval(pollCoreAgents, 15000);
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+    return () => { clearInterval(stuckInterval); clearInterval(ctxInterval); };
   }, []);
 
   async function loadData() {
@@ -71,6 +132,48 @@ export function Overview() {
           <code style={{ fontSize: '12px', opacity: 0.8 }}>
             bun run server
           </code>
+        </div>
+      )}
+
+      {stuckAgents.length > 0 && (
+        <div className={styles.stuckBanner}>
+          <div className={styles.stuckHeader}>
+            <span className={styles.stuckPulse}></span>
+            <strong>Agents Need Action ({stuckAgents.length})</strong>
+            <button
+              className={styles.stuckApproveAll}
+              onClick={async () => {
+                setApproving('all');
+                await approveAllStuckAgents();
+                setApproving(null);
+                pollStuckAgents();
+              }}
+              disabled={approving !== null}
+            >
+              {approving === 'all' ? 'Approving...' : 'Approve All'}
+            </button>
+          </div>
+          <div className={styles.stuckList}>
+            {stuckAgents.map((a) => (
+              <div key={a.agent} className={styles.stuckItem}>
+                <span className={styles.stuckAgent}>{a.agent}</span>
+                <span className={styles.stuckLabel}>{a.label}</span>
+                <span className={styles.stuckReason}>{a.reason.slice(0, 60)}</span>
+                <button
+                  className={styles.stuckApproveBtn}
+                  onClick={async () => {
+                    setApproving(a.agent);
+                    await approveStuckAgent(a.agent);
+                    setApproving(null);
+                    setTimeout(pollStuckAgents, 1000);
+                  }}
+                  disabled={approving !== null}
+                >
+                  {approving === a.agent ? '...' : 'Approve'}
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
@@ -188,6 +291,38 @@ export function Overview() {
           )}
         </>
       )}
+
+      <div className={styles.teamSection}>
+        <h2 className={styles.sectionTitle}>Core Agents</h2>
+        <div className={styles.coreGrid}>
+          {CORE_AGENTS_ORDER.map((name) => {
+            const agent = coreAgents.find(a => a.name === name);
+            const alive = agent?.alive ?? false;
+            const isToggling = togglingAgent === name;
+            return (
+              <button
+                key={name}
+                className={`${styles.coreAgent} ${alive ? styles.coreAlive : styles.coreSleeping}`}
+                disabled={isToggling}
+                onClick={async () => {
+                  setTogglingAgent(name);
+                  if (alive) {
+                    await sleepAgent(name);
+                  } else {
+                    await wakeAgent(name);
+                  }
+                  setTimeout(pollCoreAgents, 2000);
+                  setTimeout(() => setTogglingAgent(null), 2500);
+                }}
+                title={alive ? `Sleep ${name}` : `Wake ${name}`}
+              >
+                <span className={styles.coreName}>{name}</span>
+                <span className={styles.coreStatus}>{isToggling ? '...' : alive ? 'awake' : 'sleeping'}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       <div className={styles.quickActions}>
         <h2 className={styles.sectionTitle}>Quick Actions</h2>

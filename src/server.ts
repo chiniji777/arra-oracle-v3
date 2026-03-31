@@ -33,6 +33,13 @@ import { registerTraceRoutes } from './routes/traces.ts';
 import { registerKnowledgeRoutes } from './routes/knowledge.ts';
 import { registerSupersedeRoutes } from './routes/supersede.ts';
 import { registerFileRoutes } from './routes/files.ts';
+import { registerProjectRoutes } from './routes/projects.ts';
+import { registerHelloOlympusRoutes } from './routes/hello-olympus.ts';
+import { registerPingRoutes } from './routes/ping.ts';
+import { registerFleetStatusRoutes } from './routes/fleet-status.ts';
+import { registerStuckAgentsRoutes } from './routes/stuck-agents.ts';
+import { registerVersionRoutes } from './routes/version.ts';
+import { registerTestWorkflowRoutes } from './routes/test-workflow.ts';
 
 // Reset stale indexing status on startup using Drizzle
 try {
@@ -104,6 +111,13 @@ registerTraceRoutes(app);
 registerKnowledgeRoutes(app);
 registerSupersedeRoutes(app);
 registerFileRoutes(app);
+registerProjectRoutes(app);
+registerHelloOlympusRoutes(app);
+registerPingRoutes(app);
+registerFleetStatusRoutes(app);
+registerStuckAgentsRoutes(app);
+registerVersionRoutes(app);
+registerTestWorkflowRoutes(app);
 
 // Startup banner
 console.log(`

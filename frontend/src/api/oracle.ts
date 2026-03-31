@@ -258,3 +258,181 @@ export async function updateSettings(params: UpdateSettingsParams): Promise<Sett
   });
   return res.json();
 }
+
+// ============================================================================
+// Projects API
+// ============================================================================
+
+export interface Project {
+  id: string;
+  name: string;
+  description: string | null;
+  status: string;
+  assignedBy: string;
+  createdAt: number;
+  updatedAt: number;
+  completedAt: number | null;
+}
+
+export interface ProjectTask {
+  id: number;
+  projectId: string;
+  title: string;
+  description: string | null;
+  status: string;
+  agentName: string | null;
+  agentType: string | null;
+  sessionId: string | null;
+  report: string | null;
+  order: number;
+  createdAt: number;
+  updatedAt: number;
+  completedAt: number | null;
+}
+
+export async function getProjects(status?: string): Promise<{ projects: Project[] }> {
+  const url = status ? `${API_BASE}/projects?status=${status}` : `${API_BASE}/projects`;
+  const res = await fetch(url);
+  return res.json();
+}
+
+export async function getProject(id: string): Promise<{ project: Project; tasks: ProjectTask[] }> {
+  const res = await fetch(`${API_BASE}/projects/${id}`);
+  return res.json();
+}
+
+export async function createProject(data: { name: string; description?: string }): Promise<{ id: string; name: string }> {
+  const res = await fetch(`${API_BASE}/projects`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return res.json();
+}
+
+export async function updateProject(id: string, data: Partial<Project>): Promise<{ ok: boolean }> {
+  const res = await fetch(`${API_BASE}/projects/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return res.json();
+}
+
+export async function addProjectTask(projectId: string, data: {
+  title: string;
+  description?: string;
+  agentName?: string;
+  agentType?: string;
+  report?: string;
+  status?: string;
+}): Promise<{ id: number; ok: boolean }> {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/tasks`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return res.json();
+}
+
+export async function updateProjectTask(projectId: string, taskId: number, data: Partial<ProjectTask>): Promise<{ ok: boolean; projectCompleted: boolean; qaTaskCreated?: { id: number; agent: string } | null }> {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/tasks/${taskId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return res.json();
+}
+
+export async function deleteProjectTask(projectId: string, taskId: number): Promise<{ ok: boolean }> {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/tasks/${taskId}`, {
+    method: 'DELETE',
+  });
+  return res.json();
+}
+
+// ============================================================================
+// Agent Availability API
+// ============================================================================
+
+export interface AgentAvailability {
+  name: string;
+  group: string;
+  session: string;
+  status: 'free' | 'busy' | 'offline';
+}
+
+export async function getAgentAvailability(): Promise<{ agents: AgentAvailability[]; timestamp: number }> {
+  const res = await fetch(`${API_BASE}/fleet/agents/availability`);
+  return res.json();
+}
+
+// ============================================================================
+// Core Agent API (sleep/wake)
+// ============================================================================
+
+export interface CoreAgentStatus {
+  name: string;
+  alive: boolean;
+}
+
+export async function getCoreAgents(): Promise<{ agents: CoreAgentStatus[]; timestamp: number }> {
+  const res = await fetch(`${API_BASE}/fleet/core`);
+  return res.json();
+}
+
+export async function sleepAgent(name: string): Promise<{ ok: boolean }> {
+  const res = await fetch(`${API_BASE}/fleet/core/${name}/sleep`, { method: 'POST' });
+  return res.json();
+}
+
+export async function wakeAgent(name: string): Promise<{ ok: boolean }> {
+  const res = await fetch(`${API_BASE}/fleet/core/${name}/wake`, { method: 'POST' });
+  return res.json();
+}
+
+// ============================================================================
+// Agent Context API
+// ============================================================================
+
+export interface AgentContextInfo {
+  name: string;
+  group: string;
+  contextPercent: number;
+  totalTokens: number;
+  lastActivity: string | null;
+}
+
+export async function getAgentContext(): Promise<{ agents: AgentContextInfo[]; maxTokens: number; timestamp: number }> {
+  const res = await fetch(`${API_BASE}/fleet/agents/context`);
+  return res.json();
+}
+
+// ============================================================================
+// Stuck Agents API
+// ============================================================================
+
+export interface StuckAgent {
+  agent: string;
+  session: string;
+  window: string;
+  target: string;
+  reason: string;
+  label: string;
+  detectedAt: number;
+}
+
+export async function getStuckAgents(): Promise<{ stuckAgents: StuckAgent[]; totalStuck: number; timestamp: number }> {
+  const res = await fetch(`${API_BASE}/fleet/stuck`);
+  return res.json();
+}
+
+export async function approveStuckAgent(agent: string): Promise<{ ok: boolean; action: string; agent: string }> {
+  const res = await fetch(`${API_BASE}/fleet/stuck/${agent}/approve`, { method: 'POST' });
+  return res.json();
+}
+
+export async function approveAllStuckAgents(): Promise<{ ok: boolean; approved: { agent: string; action: string }[]; total: number }> {
+  const res = await fetch(`${API_BASE}/fleet/stuck/approve-all`, { method: 'POST' });
+  return res.json();
+}

@@ -265,6 +265,46 @@ export const schedule = sqliteTable('schedule', {
 ]);
 
 // ============================================================================
+// Projects Table - Track work assigned by Nut
+// ============================================================================
+
+export const projects = sqliteTable('projects', {
+  id: text('id').primaryKey(),                    // e.g. "PRJ-001"
+  name: text('name').notNull(),
+  description: text('description'),
+  status: text('status').default('active'),       // active, completed, paused, cancelled
+  assignedBy: text('assigned_by').default('nut'), // Who assigned
+  createdAt: integer('created_at').notNull(),
+  updatedAt: integer('updated_at').notNull(),
+  completedAt: integer('completed_at'),
+}, (table) => [
+  index('idx_project_status').on(table.status),
+  index('idx_project_created').on(table.createdAt),
+]);
+
+// Project tasks - individual steps/reports from agents
+export const projectTasks = sqliteTable('project_tasks', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  projectId: text('project_id').notNull().references(() => projects.id),
+  title: text('title').notNull(),
+  description: text('description'),
+  status: text('status').default('pending'),      // pending, in_progress, completed, failed
+  agentName: text('agent_name'),                  // Which agent reported this
+  agentType: text('agent_type'),                  // spawn, assigned, manual
+  sessionId: text('session_id'),                  // Claude session if available
+  report: text('report'),                         // Agent's work report
+  order: integer('order').default(0),             // Task ordering
+  createdAt: integer('created_at').notNull(),
+  updatedAt: integer('updated_at').notNull(),
+  completedAt: integer('completed_at'),
+}, (table) => [
+  index('idx_ptask_project').on(table.projectId),
+  index('idx_ptask_status').on(table.status),
+  index('idx_ptask_agent').on(table.agentName),
+  index('idx_ptask_created').on(table.createdAt),
+]);
+
+// ============================================================================
 // Settings Table - Key-value store for configuration
 // ============================================================================
 
