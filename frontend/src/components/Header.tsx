@@ -19,6 +19,9 @@ const navItems = [
   { path: '/forum', label: 'Forum' },
   { path: '/projects', label: 'Projects' },
   { path: '/camera', label: 'Camera' },
+  { divider: true },
+  { path: '/food', label: 'Food' },
+  { path: '/transport', label: 'Transport' },
 ] as const;
 
 // Dropdown items (Tools)

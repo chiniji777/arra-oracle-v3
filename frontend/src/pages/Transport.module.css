@@ -1,0 +1,345 @@
+.container {
+  padding: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.header {
+  margin-bottom: 20px;
+}
+
+.header h1 {
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+/* Service Toggle */
+.serviceToggle {
+  display: flex;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 4px;
+  border-radius: 10px;
+  margin-bottom: 24px;
+}
+
+.toggleBtn {
+  flex: 1;
+  padding: 12px;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  color: var(--text-secondary, #999);
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.toggleBtn:hover {
+  color: var(--text, #eee);
+}
+
+.toggleBtn.active {
+  background: rgba(136, 136, 255, 0.15);
+  color: var(--accent, #88f);
+}
+
+/* Route Section */
+.routeSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border, #333);
+  border-radius: 12px;
+  margin-bottom: 24px;
+  position: relative;
+}
+
+.routeInputGroup {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.routeDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-top: 14px;
+  flex-shrink: 0;
+}
+
+.routeLine {
+  width: 2px;
+  height: 20px;
+  background: var(--border, #444);
+  margin-left: 5px;
+}
+
+.routeInputWrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.routeInput {
+  width: 100%;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border, #333);
+  border-radius: 8px;
+  color: var(--text, #eee);
+  font-size: 0.95rem;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.routeInput:focus {
+  border-color: var(--accent, #88f);
+}
+
+.routeInput::placeholder {
+  color: var(--text-secondary, #666);
+}
+
+.savedPlaces {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.savedPlaceBtn {
+  padding: 4px 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border, #333);
+  border-radius: 14px;
+  color: var(--text-secondary, #aaa);
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: all 0.2s;
+}
+
+.savedPlaceBtn:hover {
+  background: rgba(136, 136, 255, 0.1);
+  border-color: var(--accent, #88f);
+  color: var(--text, #eee);
+}
+
+/* Section */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-secondary, #aaa);
+}
+
+/* Platform Grid */
+.platformGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.platformCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border, #333);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--text, #eee);
+  position: relative;
+}
+
+.platformCard:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--platform-color, #88f);
+}
+
+.platformCard.selected {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--platform-color, #88f);
+  box-shadow: 0 0 12px rgba(136, 136, 255, 0.15);
+}
+
+.platformIcon {
+  font-size: 2rem;
+}
+
+.platformLabel {
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.apiBadge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 2px 6px;
+  background: rgba(242, 103, 34, 0.2);
+  border: 1px solid rgba(242, 103, 34, 0.4);
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #f26722;
+  text-transform: uppercase;
+}
+
+/* Quotes */
+.quoteEmpty {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-secondary, #999);
+  font-size: 0.9rem;
+}
+
+.quoteBtn {
+  margin-top: 12px;
+  padding: 10px 28px;
+  background: #f26722;
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.quoteBtn:hover {
+  opacity: 0.9;
+}
+
+.quoteBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.apiNote {
+  margin-top: 12px;
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+
+.quoteList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.quoteCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border, #333);
+  border-radius: 10px;
+}
+
+.quoteVehicle {
+  font-weight: 500;
+}
+
+.quotePrice {
+  color: var(--accent, #88f);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.quoteEta {
+  font-size: 0.85rem;
+  color: var(--text-secondary, #999);
+}
+
+/* Open Platform Button */
+.openPlatformBtn {
+  padding: 14px;
+  background: var(--platform-color, #88f);
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.openPlatformBtn:hover {
+  opacity: 0.9;
+}
+
+/* Empty State */
+.emptyState {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-secondary, #999);
+}
+
+.emptyIcon {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+}
+
+.emptyText {
+  font-size: 1rem;
+  margin-bottom: 4px;
+}
+
+.emptySubtext {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+/* Trip List */
+.tripList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tripCard {
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border, #333);
+  border-radius: 10px;
+}
+
+.tripRoute {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.tripArrow {
+  color: var(--text-secondary, #666);
+}
+
+.tripMeta {
+  display: flex;
+  gap: 12px;
+  font-size: 0.8rem;
+  color: var(--text-secondary, #777);
+}
+
+@media (max-width: 600px) {
+  .platformGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
