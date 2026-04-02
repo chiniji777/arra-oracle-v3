@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>ใบปะหน้าซองเอกสาร</title>
+<style>
+  @page { size: A4; margin: 20mm; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Sarabun', 'Noto Sans Thai', 'TH SarabunPSK', sans-serif;
+    padding: 40px;
+    color: #000;
+  }
+  .container {
+    border: 3px solid #000;
+    padding: 40px;
+    max-width: 700px;
+    margin: 60px auto;
+  }
+  .header {
+    text-align: center;
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 50px;
+    letter-spacing: 4px;
+    border-bottom: 2px solid #000;
+    padding-bottom: 20px;
+  }
+  .section {
+    margin-bottom: 35px;
+  }
+  .label {
+    font-size: 16px;
+    color: #555;
+    margin-bottom: 6px;
+  }
+  .value {
+    font-size: 22px;
+    font-weight: bold;
+    line-height: 1.6;
+  }
+  .phone {
+    font-size: 26px;
+    font-weight: bold;
+    letter-spacing: 2px;
+  }
+  .divider {
+    border-top: 1px dashed #999;
+    margin: 30px 0;
+  }
+  .footer {
+    text-align: center;
+    font-size: 13px;
+    color: #999;
+    margin-top: 40px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">ใบปะหน้าซองเอกสาร</div>
+
+  <div class="section">
+    <div class="label">ผู้รับ / Attention:</div>
+    <div class="value">จัดซื้อเคเค</div>
+  </div>
+
+  <div class="section">
+    <div class="label">โทรศัพท์ / Tel:</div>
+    <div class="phone">097-193-6609</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section">
+    <div class="label">ส่งถึง / Ship To:</div>
+    <div class="value">
+      บริษัท เกมบอล (ไทยแลนด์) จำกัด<br>
+      เลขที่ 7/1003 หมู่ที่ 5<br>
+      ตำบลมาบยางพร อำเภอปลวกแดง<br>
+      จังหวัดระยอง 21140
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section">
+    <div class="label">รายละเอียดเอกสาร / Description:</div>
+    <div style="border-bottom: 1px dotted #999; height: 30px; margin-top: 5px;"></div>
+    <div style="border-bottom: 1px dotted #999; height: 30px;"></div>
+  </div>
+
+  <div class="footer">วันที่พิมพ์: 1 เมษายน 2569</div>
+</div>
+</body>
+</html>
