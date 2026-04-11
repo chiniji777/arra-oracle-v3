@@ -31,3 +31,8 @@ managed-by: firstgod-oracle
 ## 2026-03-31
 
 - **01:00 — Nova**: Deploy marketing-hub — LINE webhook + send demo via LINE + credentials ✅ live
+
+## 2026-04-11
+
+- **Saraswati**: Skills pack Marketty Auto-Post v2 (Hades+Freya) — source-verified 7 corrections + 2 new patterns (drizzle-extend, gated-toggle)
+- **15:18 — Saraswati**: Fix Iris Telegram poller — เขียน scripts/telegram-poller.ts ที่หายจาก iris-oracle (launchd crash loop 2 สัปดาห์), reboot-survival ผ่าน launchd KeepAlive ✅
